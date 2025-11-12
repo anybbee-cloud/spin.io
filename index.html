@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-box">
+    <h2>ເຂົ້າລະບົບ</h2>
+    <input id="username" type="text" placeholder="ຊື່ຜູ້ໃຊ້">
+    <input id="password" type="password" placeholder="ລະຫັດ">
+    <button onclick="login()">ເຂົ້າລະບົບ</button>
+    <p id="msg"></p>
+  </div>
+
+  <script>
+    function login() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value.trim();
+
+      if (u === "admin" && p === "1234") {
+        localStorage.setItem('role', 'admin');
+        window.location.href = "admin.html";
+        return;
+      }
+
+      const players = JSON.parse(localStorage.getItem("players") || "[]");
+      const found = players.find(x => x.name === u && x.code === p);
+
+      if (found) {
+        localStorage.setItem('role', 'player');
+        localStorage.setItem('playerName', u);
+        window.location.href = "player.html";
+      } else {
+        document.getElementById("msg").textContent = "ຊື່ ຫຼື ລະຫັດບໍ່ຖືກ";
+      }
+    }
+  </script>
+</body>
+</html>

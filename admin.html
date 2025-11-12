@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>👨‍💼 ໜ້າຈັດການຂອງ Admin</h2>
+    <button onclick="logout()">ອອກຈາກລະບົບ</button>
+
+    <h3>ເພີ່ມຜູ້ຫຼິ້ນ</h3>
+    <input id="pname" type="text" placeholder="ຊື່ຜູ້ຫຼິ້ນ">
+    <input id="pcode" type="text" placeholder="ລະຫັດເຂົ້າຫ້ອງ">
+    <input id="plink" type="url" placeholder="ລິ້ງພາຍນອກ">
+    <button onclick="addPlayer()">ເພີ່ມ</button>
+
+    <h3>ລາຍຊື່ຜູ້ຫຼິ້ນ</h3>
+    <table border="1" width="100%">
+      <thead><tr><th>ຊື່</th><th>ລະຫັດ</th><th>ລິ້ງ</th><th>ລຶບ</th></tr></thead>
+      <tbody id="playerList"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const players = JSON.parse(localStorage.getItem("players") || "[]");
+    const list = document.getElementById("playerList");
+    showPlayers();
+
+    function addPlayer() {
+      const name = document.getElementById("pname").value.trim();
+      const code = document.getElementById("pcode").value.trim();
+      const link = document.getElementById("plink").value.trim();
+
+      if (!name || !code || !link) return alert("ກະລຸນາປ້ອນໃຫ້ຄົບ");
+
+      players.push({ name, code, link });
+      localStorage.setItem("players", JSON.stringify(players));
+      showPlayers();
+      document.getElementById("pname").value = "";
+      document.getElementById("pcode").value = "";
+      document.getElementById("plink").value = "";
+    }
+
+    function showPlayers() {
+      list.innerHTML = "";
+      players.forEach((p, i) => {
+        list.innerHTML += `
+          <tr>
+            <td>${p.name}</td>
+            <td>${p.code}</td>
+            <td><a href="${p.link}" target="_blank">ເບິ່ງ</a></td>
+            <td><button onclick="removePlayer(${i})">ລຶບ</button></td>
+          </tr>`;
+      });
+    }
+
+    function removePlayer(i) {
+      players.splice(i, 1);
+      localStorage.setItem("players", JSON.stringify(players));
+      showPlayers();
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
