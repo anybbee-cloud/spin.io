@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ບີນ</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao&display=swap');
+
+* { font-family: 'Noto Sans Lao', sans-serif; box-sizing: border-box; }
+
+body {
+  background: rgba(0,0,0,0.8);
+  background-image: url("cafe.jpeg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ===== ปุ่มสวยงาม + มน + shadow ===== */
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  margin: 6px;
+  transition: 0.25s;
+}
+
+button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+
+.btn-blue { background: #1E90FF; color: #fff; }
+.btn-green { background: #28A745; color: #fff; }
+.btn-yellow { background: #FFC107; color: #fff; }
+
+/* ===== Toast Popup ===== */
+#toast {
+  visibility: hidden;
+  min-width: 220px;
+  background: #005d69;
+  color: #fff;
+  text-align: center;
+  border-radius: 12px;
+  padding: 14px;
+  position: fixed   ;
+  z-index: 9999;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  font-size: 17px;
+  opacity: 0;
+  transition: opacity 0.4s, bottom 0.4s;
+}
+
+#toast.show { visibility: visible; opacity: 1; bottom: 60px; }
+
+/* ===== Ticket ===== */
+.ticket {
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid #999;
+  max-width: 400px;
+  width: 100%;
+  margin: auto;
+  padding: 15px;
+  box-shadow: 0 0 10px #ccc;
+  z-index: 1;
+  border-radius: 14px;
+}
+
+.header { background-color: #d6e6f3; padding: 6px; font-weight: bold; border-bottom: 1px solid #aaa; border-radius: 10px; }
+
+.title { margin: 15px 0; font-size: 1.2em; }
+.info { font-size: 1.4em; margin: 5px 0; font-weight: 600; }
+.note { font-size: 0.9em; margin-top: 15px; color: #333; line-height: 1.3em; }
+.watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotate(-30deg);
+  font-size: 2em; color: rgba(255,0,0,0.1);
+  pointer-events: none; z-index: 0; white-space: nowrap;
+  text-align: center; line-height: 1.2em;
+}
+
+table { margin: 20px auto; border-collapse: collapse; width: 100%; max-width: 400px; }
+td { padding: 6px; display: block; text-align: left; width: 100%; }
+
+/* ===== Label ใหญ่ ===== */
+table td:first-child {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+input[type="text"], input[type="number"] {
+  padding: 7px;
+  width: 100%;
+  font-size: 1em;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1px solid #aaa;
+}
+
+/* ===== Print CSS ===== */
+@media print {
+  body * { visibility: hidden; }
+  .ticket, .ticket * { visibility: visible; }
+  .ticket { position: absolute; left:0; top:0; width:100%; box-shadow:none; margin:0; }
+}
+</style>
+</head>
+
+<body>
+
+<h3 style="color:white">ແກ້ໄຂຂໍ້ມູນ</h3>
+
+<table>
+  <tr>
+    <td>ຊື່ຜູ້ໃຊ້:</td>
+    <td><input type="text" id="nameInput" value=""></td>
+  </tr>
+  <tr>
+    <td>ລະຫັດ:</td>
+    <td>
+      <input type="text" id="codeInput" value="" readonly>
+      <button class="btn-yellow" onclick="copyCode()">📋 ຄັດລອກລະຫັດ</button>
+    </td>
+  </tr>
+  <tr>
+    <td>ຈຳນວນເງິນ:</td>
+    <td><input type="number" id="amountInput" value="25000" min="0" step="100"></td>
+  </tr>
+</table>
+
+<button class="btn-blue" onclick="updateInfo()">ອັບເດດລະຫັດ</button>
+<button class="btn-green" onclick="window.print()">🖨️ ພິມໃບບິນ</button>
+<button class="btn-yellow" onclick="copyAll()">📋 ຄັດລອກຂໍ້ມູນທັງໝົດ</button>
+
+<div id="toast">ສຳເລັດ!</div>
+
+<div class="ticket" id="printArea">
+  <img src="gclub.png" width="12%">
+  <div class="watermark" id="watermarkText">lion777 ONLINE</div>
+  <div class="header" id="datetime"></div>
+  <div class="title">ຢູ່ເຊີ້: <span id="nameDisplay"></span></div>
+  <div class="info" id="codeDisplay"></div>
+  <div class="info" id="amountDisplay" style="font-size: 1.5em;"></div>
+  <div class="note" id="noteBox"></div>
+</div>
+
+<script>
+/* Toast function */
+function showToast(msg){
+  const x = document.getElementById("toast");
+  x.innerText = msg;
+  x.classList.add("show");
+  setTimeout(()=>x.classList.remove("show"),2000);
+}
+
+/* Update info */
+function updateInfo(){
+  const nameVal = document.getElementById("nameInput").value.trim() || "ບໍ່ມີຊື່";
+  const codeVal = Math.floor(10000+Math.random()*90000).toString();
+  const amountVal = Number(document.getElementById("amountInput").value) || 0;
+
+  document.getElementById("nameDisplay").textContent = nameVal;
+  document.getElementById("codeDisplay").textContent = codeVal;
+  document.getElementById("amountDisplay").textContent = amountVal.toLocaleString("lo-LA")+" ບາດ";
+  document.getElementById("codeInput").value = codeVal;
+
+  const tax = amountVal>=50000 ? amountVal*0.1:700;
+
+  document.getElementById("noteBox").innerText =
+`${amountVal.toLocaleString("lo-LA")} Jackpot30,000ບາດ ຂື້ນໄປຫັກ10%
+ເກມ ສະລ໊ອດ ຈ່າຍສູງສຸດ 300,000ບາດ ສໍາລັບຟຣີເກມ ຫຼື ບິກວິນ ກາລຸນາປ່ຽນລະຫັດຢູ່ເຊີ້ຂອງທ່ານ ເປັນປະຈໍາ
+ເຫຼດເງີນ ${tax.toLocaleString("lo-LA")} ບາດ`;
+
+  showToast("ອັບເດດສຳເລັດ!");
+}
+
+/* Datetime */
+function updateDateTime(){
+  const now = new Date();
+  const days = ["ທິດ","ຈັນ","ຄານ","ພຸດ","ພະຫັດ","ສຸກ","ເສົາ"];
+  const day = days[now.getDay()];
+  const date = now.toLocaleDateString("lo-LA");
+  const time = now.toLocaleTimeString("lo-LA",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.getElementById("datetime").textContent = `${day}, ${date} ${time}`;
+  document.getElementById("watermarkText").innerHTML = `LION777 ONLINE<br>${date} ${time}`;
+}
+
+setInterval(updateDateTime,1000);
+updateDateTime();
+
+/* Copy code */
+function copyCode(){
+  const code = document.getElementById("codeInput").value;
+  navigator.clipboard.writeText(code);
+  showToast("ຄັດລອກລະຫັດແລ້ວ!");
+}
+
+/* Copy all */
+function copyAll(){
+  const text = `${document.getElementById("datetime").textContent}
+ຢູ່ເຊີ້: ${document.getElementById("nameDisplay").textContent}
+ລະຫັດ: ${document.getElementById("codeDisplay").textContent}
+ເຄຣດິດ: ${document.getElementById("amountDisplay").textContent}
+
+${document.getElementById("noteBox").innerText}`;
+  navigator.clipboard.writeText(text);
+  showToast("ຄັດລອກຂໍ້ມູນສຳເລັດ!");
+}
+</script>
+
+</body>
+</html>
